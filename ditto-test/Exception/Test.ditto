@@ -1,0 +1,81 @@
+module Exception.Test exports (
+    main,
+);
+
+import (js-unknown) Unknown;
+
+import (std) Bool;
+import (std) Effect;
+import (std) Int;
+import (std) Maybe (
+    Maybe(..),
+);
+import (std) Never;
+import (std) Pair (
+    Pair(..),
+);
+import (std) Result (
+    Result(..),
+);
+import (std) String;
+
+import Error;
+import Exception;
+
+
+throws_42 = Exception.throw(42);
+
+throws_inner: Effect(Never.Never) = do {
+    result <- Exception.try_catch(throws_42);
+    match result with
+    | Ok(nah) -> Never.unreachable(nah)
+    | Err(exn) ->
+        match Unknown.to_int(exn) with
+        | Just(i) ->
+            if Int.is_eq(i, 42) then
+                let
+                    err = Error.new("inner", { cause = Just(i) });
+                in
+                Exception.throw(err)
+            else
+                Exception.throw("huh")
+        | Nothing -> Exception.throw("wut")
+        end
+    end
+};
+
+rethrow_outer = fn (e: Effect(a)) -> do {
+    result <- Exception.try_catch(e);
+    match result with
+    | Ok(a) -> Effect.pure(a)
+    | Err(b) -> Exception.throw(Error.new("outer", { cause = Just(b) }))
+    end
+};
+
+main: Effect(Bool) = do {
+    result <- Exception.try_catch(rethrow_outer(throws_inner));
+    return match result with
+    | Ok(_) -> false
+    | Err(dunno) ->
+        match
+            Error.from_unknown(dunno)
+            |> Maybe.and_then(
+                fn (outer) ->
+                    Error.cause(outer)
+                    |> Maybe.and_then(Error.from_unknown)
+                    |> Maybe.map(
+                        fn (inner) -> Pair(
+                            Error.message(outer),
+                            Error.message(inner),
+                        ),
+                    ),
+            )
+        with
+        | Just(Pair(outer_message, inner_message)) -> Bool.and(
+            String.is_eq(outer_message, "outer"),
+            String.is_eq(inner_message, "inner"),
+        )
+        | Nothing -> false
+        end
+    end
+};
