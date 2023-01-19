@@ -1,29 +1,29 @@
 module Exception.Test exports (
     main,
-);
+)
 
-import (js-unknown) Unknown;
+import (js-unknown) Unknown
 
-import (std) Bool;
-import (std) Effect;
-import (std) Int;
+import (std) Bool
+import (std) Effect
+import (std) Int
 import (std) Maybe (
     Maybe(..),
-);
-import (std) Never;
+)
+import (std) Never
 import (std) Pair (
     Pair(..),
-);
+)
 import (std) Result (
     Result(..),
-);
-import (std) String;
+)
+import (std) String
 
-import Error;
-import Exception;
+import Error
+import Exception
 
 
-throws_42 = Exception.throw(42);
+throws_42 = Exception.throw(42)
 
 throws_inner: Effect(Never.Never) = do {
     result <- Exception.try_catch(throws_42);
@@ -34,7 +34,7 @@ throws_inner: Effect(Never.Never) = do {
         | Just(i) ->
             if Int.is_eq(i, 42) then
                 let
-                    err = Error.new("inner", { cause = Just(i) });
+                    err = Error.new("inner", { cause = Just(i) })
                 in
                 Exception.throw(err)
             else
@@ -42,7 +42,7 @@ throws_inner: Effect(Never.Never) = do {
         | Nothing -> Exception.throw("wut")
         end
     end
-};
+}
 
 rethrow_outer = fn (e: Effect(a)) -> do {
     result <- Exception.try_catch(e);
@@ -50,7 +50,7 @@ rethrow_outer = fn (e: Effect(a)) -> do {
     | Ok(a) -> Effect.pure(a)
     | Err(b) -> Exception.throw(Error.new("outer", { cause = Just(b) }))
     end
-};
+}
 
 main: Effect(Bool) = do {
     result <- Exception.try_catch(rethrow_outer(throws_inner));
@@ -78,4 +78,4 @@ main: Effect(Bool) = do {
         | Nothing -> false
         end
     end
-};
+}

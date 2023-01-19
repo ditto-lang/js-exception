@@ -1,29 +1,29 @@
 module Exception exports (
     try_catch,
     throw,
-);
+)
 
 import (js-unknown) Unknown (
     Unknown,
-);
+)
 
 import (std) Result (
     Result(..),
-);
+)
 
 
 try_catch = fn (e: Effect(a)): Effect(Result(a, Unknown)) -> try_catch_impl(
     e,
     Ok,
     Err,
-);
+)
 
-throw = throw_impl;
+throw = throw_impl
 
 foreign try_catch_impl: (
     Effect(a),
     (a) -> Result(a, Unknown),
     (Unknown) -> Result(a, Unknown),
-) -> Effect(Result(a, Unknown));
+) -> Effect(Result(a, Unknown))
 
-foreign throw_impl: (a) -> Effect(b);
+foreign throw_impl: (a) -> Effect(b)

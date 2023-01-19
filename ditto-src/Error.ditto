@@ -4,43 +4,43 @@ module Error exports (
     from_unknown,
     message,
     cause,
-);
+)
 
 import (js-unknown) Unknown (
     Unknown,
-);
+)
 
 import (std) Maybe (
     Maybe(..),
-);
+)
 
 
-type Error;
+type Error
 
 new = fn (message: String, options: { cause: Maybe(a) }): Error ->
     match options.cause with
     | Just(c) -> new_with_cause_impl(message, c)
     | Nothing -> new_impl(message)
-    end;
+    end
 
 from_unknown = fn (dunno: Unknown): Maybe(Error) -> from_unknown_impl(
     dunno,
     Just,
     Nothing,
-);
+)
 
-message = message_impl;
+message = message_impl
 
-cause = fn (dunno: Error): Maybe(Unknown) -> cause_impl(dunno, Just, Nothing);
+cause = fn (dunno: Error): Maybe(Unknown) -> cause_impl(dunno, Just, Nothing)
 
-foreign new_impl: (String) -> Error;
+foreign new_impl: (String) -> Error
 
-foreign new_with_cause_impl: (String, cause) -> Error;
+foreign new_with_cause_impl: (String, cause) -> Error
 
 foreign from_unknown_impl: (Unknown, (Error) -> Maybe(Error), Maybe(Error)) ->
-    Maybe(Error);
+    Maybe(Error)
 
-foreign message_impl: (Error) -> String;
+foreign message_impl: (Error) -> String
 
 foreign cause_impl: (Error, (Unknown) -> Maybe(Unknown), Maybe(Unknown)) ->
-    Maybe(Unknown);
+    Maybe(Unknown)
